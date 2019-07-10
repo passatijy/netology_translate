@@ -1,34 +1,40 @@
 import requests
 
-API_KEY = 'trnsl.1.1.20161025T233221Z.47834a66fd7895d0.a95fd4bfde5c1794fa433453956bd261eae80152'
+API_KEY = input('Введите ключ API_KEY к сервису Yandex-translate: ')
+
 URL = 'https://translate.yandex.net/api/v1.5/tr.json/translate'
 
-def translate_it(text, to_lang):
+
+def translate_it(key, in_text_file, out_text_file, from_lang, to_lang='ru'):
     """
     https://translate.yandex.net/api/v1.5/tr.json/translate ?
     key=<API-ключ>
-     & text=<переводимый текст>
-     & lang=<направление перевода>
-     & [format=<формат текста>]
-     & [options=<опции перевода>]
-     & [callback=<имя callback-функции>]
-
-    :param to_lang:
-    :return:
+     & in_text_file = <файл с переводимым текстом>
+     & out_text_file =  <файл с переводом>
+     & from_lang=<напр es (испанский), de(немецкий), fr(французский)
+     & to_lang = <на какой переводить, по умолчанию русский>
+    :return: <возвращаю текст перевода>
     """
-
+    with open(in_text_file, 'r', encoding="utf-8") as f:
+        text = f.read()
     params = {
-        'key': API_KEY,
+        'key': key,
         'text': text,
-        'lang': 'ru-{}'.format(to_lang),
+        'lang': '{}-{}'.format(from_lang, to_lang),
     }
 
+
     response = requests.get(URL, params=params)
-    json_ = response.json()
+    try:
+        json_ = response.json()
+    except ConnectionError as ce:
+        print(ce)
+    with open(out_text_file,'w', encoding = 'utf-8') as f:
+        f.write(''.join(json_['text']))
     return ''.join(json_['text'])
 
+print(translate_it(API_KEY, 'ES.txt','ES-RU.txt','es','ru'))
+print(translate_it(API_KEY, 'DE.txt','DE-RU.txt','de','ru'))
+print(translate_it(API_KEY, 'DE.txt','DE-EN.txt','de','en'))
+print(translate_it(API_KEY, 'FR.txt','FR-RU.txt','fr'))
 
-# print(translate_it('В настоящее время доступна единственная опция — признак включения в ответ автоматически определенного языка переводимого текста. Этому соответствует значение 1 этого параметра.', 'no'))
-
-
-requests.post('http://requestb.in/10vc0zh1', json=dict(a='goo', b='foo'))
